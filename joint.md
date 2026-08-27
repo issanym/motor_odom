@@ -42,3 +42,28 @@ Insert this block right after you publish your odom message:
 
 Why doing this matters
 Now, when you move your robot, robot_state_publisher will immediately notice that left_wheel_joint and right_wheel_joint are rotating. It will calculate the internal TF frames (base_link → left_wheel and base_link → right_wheel) dynamically based on your URDF geometry. Together with your odom → base_link transform, your entire TF tree will link up perfectly.
+
+
+
+[ Raw Encoder Ticks ]
+          │
+          ▼
+┌─────────────────────────────────┐
+│       Custom Odom Node          │
+├─────────────────────────────────┤
+│ 1. Calculates Global Position   │──( /odom Msg )──────────────► [ Navigation / EKF ]
+│ 2. Broadcasts Global Transform  │──( TF: odom -> base_link )──► [ Global TF Tree ]
+│ 3. Tracks Individual Wheel Rads │──( /joint_states Msg )──┐
+└─────────────────────────────────┘                         │
+                                                            ▼
+                                          ┌───────────────────────────────────┐
+                                          │       robot_state_publisher       │
+                                          ├───────────────────────────────────┤
+                                          │ 1. Reads Static URDF Parameters   │
+                                          │ 2. Calculates wheel positions     │
+                                          └───────────────────────────────────┘
+                                                            │
+                                                            ▼
+                                                    ( TF: base_link -> left_wheel )
+                                                    ( TF: base_link -> right_wheel )
+                                                    ( TF: base_link -> lidar_link )
